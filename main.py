@@ -43,8 +43,9 @@ signal = load_signal_from_file(file_path)
 
 # Możliwość dostosowania osi czasu
 time_scale = np.arange(0, len(signal))  # Przykładowa skala czasu
-plot_signal(signal, time_scale, title="EKG Signal", xlabel="Czas [s]", ylabel="Amplituda")
+plot_signal(signal, time_scale, title="EKG Signal 1", xlabel="Czas [s]", ylabel="Amplituda")
 
 # Możliwość zapisu wycinka sygnału do pliku
 fragment_signal = signal[100:200]  # Przykładowy wycinek sygnału
-save_signal_to_file(fragment_signal, "fragment_sygnalu.txt")
+plot_signal(fragment_signal, np.arange(100, 200), title="EKG Signal 2", xlabel="Czas [s]", ylabel="Amplituda")
+
