@@ -12,6 +12,7 @@ def load_signal_from_file(file_path):
     for line in lines:
         signal.append([float(x) for x in line.split()])
     return np.array(signal)
+#kacper rakowski
 
 
 def plot_signal(signal, time_scale=None, title=None, xlabel=None, ylabel=None):
