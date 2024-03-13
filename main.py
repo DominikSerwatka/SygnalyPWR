@@ -10,8 +10,9 @@ def load_signal_from_file(file_path):
         lines = file.readlines()
     signal = []
     for line in lines:
-        signal.append([int(x) for x in line.split()])
+        signal.append([float(x) for x in line.split()])
     return np.array(signal)
+
 
 def plot_signal(signal, time_scale=None, title=None, xlabel=None, ylabel=None):
     """
@@ -39,7 +40,8 @@ def save_signal_to_file(signal, file_name):
 
 # Przykładowe użycie funkcji:
 file_path = "ekg1.txt"
-signal = load_signal_from_file(file_path)
+file_path2 = "ekg100.txt"
+signal = load_signal_from_file(file_path2)
 
 # Możliwość dostosowania osi czasu
 time_scale = np.arange(0, len(signal))  # Przykładowa skala czasu
