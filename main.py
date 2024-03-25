@@ -42,7 +42,7 @@ def save_signal_to_file(signal, file_name):
 
 # Przykładowe użycie funkcji:
 file_path = "ekg1.txt"
-file_path2 = "ekg100.txt"
+file_path2 = "ekg_noise.txt"
 signal = load_signal_from_file(file_path2)
 
 # Możliwość dostosowania osi czasu
