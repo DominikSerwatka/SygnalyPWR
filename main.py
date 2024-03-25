@@ -19,9 +19,9 @@ def plot_signal(data, fs, filename, start_time, end_time):
 
     time = np.arange(len(data)) / fs
 
-    if start_time is not None and end_time is not None:
-        start_index = int(start_time * fs)
-        end_index = int(end_time * fs)
+    if start_time != '' and end_time != '':
+        start_index = int(start_time) * fs
+        end_index = int(end_time) * fs
         data = data[start_index:end_index]
         time = time[start_index:end_index]
 
@@ -217,6 +217,87 @@ def gen_sinus_restore():
     plt.show()
 
 
+def ekg_100():
+    data = load_signal("ekg100.txt")
+    fs = 360
+    time = np.arange(len(data)) / fs
+
+    start_time = entry_start.get()
+    end_time = entry_end.get()
+    print(start_time)
+    print(end_time)
+
+    if start_time != '' and end_time != '':
+        start_index = int(start_time) * fs
+        end_index = int(end_time) * fs
+        data = data[start_index:end_index]
+        time = time[start_index:end_index]
+
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(time, data, label='Sygnał')
+    plt.title('ekg100.txt')
+    plt.xlabel('Czas [s]')
+    plt.ylabel('Amplituda')
+    plt.grid(True)
+    plt.legend(loc='upper right')
+    plt.show()
+
+    # Ograniczenie liczby próbek do wyświetlenia dla lepszej wizualizacji
+    samples_to_display = 500  # Liczba próbek do wyświetlenia
+
+    # Dyskretna transformata Fouriera (DFT)
+    X = np.fft.fft(data)
+    X_magnitude = np.abs(X) / len(data)  # Normalizacja amplitud
+
+    # Wygenerowanie wektora częstotliwości
+    freqs = np.fft.fftfreq(len(data), 1 / fs)
+
+    # Wybór połowy zakresu (od 0 do fs/2)
+    half_N = len(data) // 2
+    freqs_half = freqs[:half_N]
+    X_magnitude_half = X_magnitude[:half_N]
+
+    # Wykres widma amplitudowego
+    plt.figure(figsize=(10, 6))
+    plt.plot(freqs_half, X_magnitude_half)
+    plt.title('Widmo amplitudowe sygnału')
+    plt.xlabel('Częstotliwość (Hz)')
+    plt.ylabel('Amplituda')
+    plt.grid(True)
+    plt.xlim(0, fs / 2)
+    plt.show()
+
+    data_restored = np.fft.ifft(X).real
+
+    diff = data - data_restored
+
+    # Wyświetlenie oryginalnego i odzyskanego sygnału oraz ich różnicy
+    plt.figure(figsize=(15, 9))
+
+    plt.subplot(3, 1, 1)
+    plt.plot(time, data, label='Oryginalny sygnał EKG')
+    plt.title('Oryginalny sygnał EKG')
+    plt.xlabel('Numer próbki')
+    plt.ylabel('Amplituda')
+    plt.legend()
+
+    plt.subplot(3, 1, 2)
+    plt.plot(time, data_restored, label='Odzyskany sygnał EKG', linestyle='--')
+    plt.title('Odzyskany sygnał EKG z IDFT')
+    plt.xlabel('Numer próbki')
+    plt.ylabel('Amplituda')
+    plt.legend()
+
+    plt.subplot(3, 1, 3)
+    plt.plot(time, diff, label='Różnica sygnałów', color='red')
+    plt.title('Różnica między oryginalnym a odzyskanym sygnałem EKG')
+    plt.xlabel('Numer próbki')
+    plt.ylabel('Amplituda')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
 
 
 
@@ -261,10 +342,13 @@ button_2.pack(pady=10)
 button_3 = ttk.Button(root, text="Sinus generate", command=gen_sinus)
 button_3.pack(pady=10)
 
-butto_4 = ttk.Button(root, text="Mix of two sinus generate", command=gen_sinus_x_2)
-butto_4.pack(pady=10)
+button_4 = ttk.Button(root, text="Mix of two sinus generate", command=gen_sinus_x_2)
+button_4.pack(pady=10)
 
-butto_5 = ttk.Button(root, text="Restore signal", command=gen_sinus_restore)
-butto_5.pack(pady=10)
+button_5 = ttk.Button(root, text="Restore signal", command=gen_sinus_restore)
+button_5.pack(pady=10)
+
+button_6 = ttk.Button(root, text="ekg100.txt signal", command=ekg_100)
+button_6.pack(pady=10)
 
 root.mainloop()
