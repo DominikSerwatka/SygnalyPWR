@@ -19,11 +19,14 @@ def plot_signal(data, fs, filename, start_time, end_time):
 
     time = np.arange(len(data)) / fs
 
-    if start_time != '' and end_time != '':
+    print(start_time)
+
+    if start_time != None and end_time != None:
         start_index = int(start_time) * fs
         end_index = int(end_time) * fs
         data = data[start_index:end_index]
         time = time[start_index:end_index]
+        print(start_time)
 
     plt.figure(figsize=(10, 6))
     if filename == "ekg100.txt":
@@ -32,6 +35,9 @@ def plot_signal(data, fs, filename, start_time, end_time):
     elif filename == "ekg_noise.txt":
         plt.plot(data[:, 0], data[:, 1])
         plt.title('ekg_noise.txt')
+        # for i in range(data.shape[1]):
+        #     plt.plot(time, data[:, i], label=f'Odprowadzenie {i + 1}')
+        # plt.title('ekg100.txt')
     else:
         for i in range(data.shape[1]):
             plt.plot(time, data[:, i], label=f'Odprowadzenie {i + 1}')
@@ -247,26 +253,40 @@ def ekg_100():
     samples_to_display = 500  # Liczba próbek do wyświetlenia
 
     # Dyskretna transformata Fouriera (DFT)
-    X = np.fft.fft(data)
-    X_magnitude = np.abs(X) / len(data)  # Normalizacja amplitud
 
-    # Wygenerowanie wektora częstotliwości
-    freqs = np.fft.fftfreq(len(data), 1 / fs)
-
-    # Wybór połowy zakresu (od 0 do fs/2)
-    half_N = len(data) // 2
-    freqs_half = freqs[:half_N]
-    X_magnitude_half = X_magnitude[:half_N]
-
-    # Wykres widma amplitudowego
+    n = len(data)
+    Y = np.fft.fft(data)
+    P2 = np.abs(Y)
+    P1 = P2[:n // 2 + 1] / n
+    P1[1:-1] = 2 * P1[1:-1]
+    f = np.linspace(0, fs / 2, len(P1))
     plt.figure(figsize=(10, 6))
-    plt.plot(freqs_half, X_magnitude_half)
+    plt.plot(f, P1)
     plt.title('Widmo amplitudowe sygnału')
     plt.xlabel('Częstotliwość (Hz)')
     plt.ylabel('Amplituda')
     plt.grid(True)
-    plt.xlim(0, fs / 2)
     plt.show()
+    # X = np.fft.fft(data)
+    # X_magnitude = np.abs(X) / len(data)  # Normalizacja amplitud
+    #
+    # # Wygenerowanie wektora częstotliwości
+    # freqs = np.fft.fftfreq(len(data), 1 / fs)
+    #
+    # # Wybór połowy zakresu (od 0 do fs/2)
+    # half_N = len(data) // 2
+    # freqs_half = freqs[:half_N]
+    # X_magnitude_half = X_magnitude[:half_N]
+    #
+    # # Wykres widma amplitudowego
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(freqs_half, X_magnitude_half)
+    # plt.title('Widmo amplitudowe sygnału')
+    # plt.xlabel('Częstotliwość (Hz)')
+    # plt.ylabel('Amplituda')
+    # plt.grid(True)
+    # plt.xlim(0, fs / 2)
+    # plt.show()
 
     data_restored = np.fft.ifft(X).real
 
