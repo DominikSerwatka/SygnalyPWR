@@ -2,373 +2,322 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
+from scipy.signal import butter, filtfilt
 
 
 def load_signal(filename):
     """
-    Funkcja wczytująca sygnał z pliku tekstowego.
+    Function that load signal from file.
     """
-    data = np.loadtxt(filename)
+    try:
+        data = np.loadtxt(filename)
+    except FileNotFoundError:
+        print("File not found.")
+        return None
     return data
 
 
-def plot_signal(data, fs, filename, start_time, end_time):
+def make_plot(task_3=False):
     """
-    Funkcja wizualizująca sygnał.
+    Function that manage exception handling.
     """
+    filename = combobox_filename.get()
+    data = load_signal(filename)
+    if type(data) is not np.ndarray:
+        messagebox.showwarning(title="Exception", message="File not found.")
+    else:
+        plot_signal(data, filename, task_3)
 
-    time = np.arange(len(data)) / fs
 
-    print(start_time)
-
-    if start_time != None and end_time != None:
-        start_index = int(start_time) * fs
-        end_index = int(end_time) * fs
-        data = data[start_index:end_index]
-        time = time[start_index:end_index]
-        print(start_time)
+def plot_signal(data, filename, task_3=False):
+    """
+    Function that draw plot.
+    """
 
     plt.figure(figsize=(10, 6))
-    if filename == "ekg100.txt":
-        plt.plot(time, data, label='Sygnał')
-        plt.title('ekg100.txt')
-    elif filename == "ekg_noise.txt":
-        plt.plot(data[:, 0], data[:, 1])
-        plt.title('ekg_noise.txt')
-        # for i in range(data.shape[1]):
-        #     plt.plot(time, data[:, i], label=f'Odprowadzenie {i + 1}')
-        # plt.title('ekg100.txt')
-    else:
-        for i in range(data.shape[1]):
-            plt.plot(time, data[:, i], label=f'Odprowadzenie {i + 1}')
-        plt.title('ekg1.txt')
-    plt.xlabel('Czas [s]')
-    plt.ylabel('Amplituda')
-    plt.grid(True)
-    plt.legend(loc='upper right')
-
-    plt.show()
-
-
-def make_plot():
-    filename = file_combobox_1.get()
-    data = load_signal(filename)
     if filename == "ekg1.txt":
         fs = 1000
+        time = np.arange(len(data)) / fs
+        for i in range(data.shape[1]):
+            plt.plot(time, data[:, i], label=f"signal {i + 1}")
+        plt.title("Signal ekg1.txt")
     else:
         fs = 360
-
-    start_time = float(entry_start.get()) if entry_start.get() else None
-    end_time = float(entry_end.get()) if entry_end.get() else None
-
-    plot_signal(data, fs, filename, start_time, end_time)
+        if filename == "ekg100.txt":
+            time = np.arange(len(data)) / fs
+            plt.plot(time, data, label="signal")
+            plt.title("Signal ekg100.txt")
+        if filename == "ekg_noise.txt":
+            plt.plot(data[:, 0], data[:, 1], label="signa;")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+    plt.grid(True)
+    plt.legend(loc='upper right')
     plt.show()
+    if task_3:
+        n = len(data)
+        x = np.fft.fft(data)
+        P2 = np.abs(x)
+        P1 = P2[:n // 2+1] / n
+        P1[1:-1] = 2 * P1[1:-1]
+        f = np.linspace(0, fs / 2, len(P1))
+        plt.figure(figsize=(10, 6))
+        plt.plot(f, P1)
+        plt.title(f"Amplitude spectrum of the signal [{filename}]")
+        plt.xlabel('Frequency [Hz]')
+        plt.ylabel('Amplitude')
+        plt.grid(True)
+        plt.xlim(0, fs / 2)
+        plt.show()
+
+        data_restored = np.fft.ifft(x).real
+
+        diff = data - data_restored
+
+        plt.figure(figsize=(15, 9))
+
+        plt.subplot(3, 1, 1)
+        plt.plot(time, data, label=f'Original signal [{filename}]')
+        plt.title('Original signal EKG')
+        plt.xlabel('Time [s]')
+        plt.ylabel('Amplitude')
+        plt.legend()
+
+        plt.subplot(3, 1, 2)
+        plt.plot(time, data_restored, label=f'Inverse signal EKG [{filename}]', linestyle='--')
+        plt.title('Inverse signal EKG z IDFT')
+        plt.xlabel('Time [s]')
+        plt.ylabel('Amplitude')
+        plt.legend()
+
+        plt.subplot(3, 1, 3)
+        plt.plot(time, diff, label='Signal Difference', color='red')
+        plt.title(f'Difference between original and inverse EKG signal [{filename}]')
+        plt.xlabel('Time [s]')
+        plt.ylabel('Amplitude')
+        plt.legend()
+
+        plt.tight_layout()
+        plt.show()
 
 
-def save_segment(new_filename, filename, data, start_time, end_time, fs):
-    start_index = int(start_time * fs)
-    end_index = int(end_time * fs)
-    if filename == "ekg100.txt":
-        selected_data = data[start_index:end_index]
-        with open(new_filename + ".txt", 'w') as file:
-            # np.savetxt(file, selected_data, fmt='%d')
-            np.savetxt(file, selected_data)
-    elif filename == "ekg_noise.txt":
-        selected_data = data[start_index:end_index, :]
-        # Utwórz plik o nazwie filename i zapisz w nim wycinek sygnału
-        with open(new_filename + ".txt", 'w') as file:
-            np.savetxt(file, selected_data)
+
+
+
+def sinus_plot(*arg, ttf=False, inverse=False):
+    """
+    Function that generate sinus plot.
+    """
+    entry_hz = entry_sinus.get()
+    if entry_hz != "50":
+        entry_hz = entry_hz.split(', ')
+        entry = [int(hz) for hz in entry_hz]
+        arg = entry
+
+    entry_fre = enter_freq.get()
+    if entry_fre != "2000":
+        fs = int(entry_fre)
     else:
-        selected_data = data[start_index:end_index, :]
-        # Utwórz plik o nazwie filename i zapisz w nim wycinek sygnału
-        with open(new_filename + ".txt", 'w') as file:
-            np.savetxt(file, selected_data, fmt='%d')
+        fs = 2000
 
+    N = 65536
+    if len(arg) == 0:
+        f = 50
+        arg = [50]
+    else:
+        f = arg[0]
 
+    time = np.arange(N) / fs
+    x = np.sin(2 * np.pi * f * time)
 
-def save_segment_to_file():
-    filename = file_combobox_1.get()
-    new_filename = entry_filename.get()
-    if filename:
-        if filename == "ekg1.txt":
-            fs = 1000
-        else:
-            fs = 360
-        data = load_signal(filename)
-        print(data)
-        save_segment(new_filename, filename, data, float(entry_start.get()), float(entry_end.get()), fs)
+    for f in arg[1:]:
+        x = x + np.sin(2 * np.pi * f * time)
 
-def gen_sinus():
-    # Parametry sygnału
-    fs = 2000  # Częstotliwość próbkowania (Hz)
-    f = 50  # Częstotliwość fali sinusoidalnej (Hz)
-    N = 65536  # Długość sygnału
+    samples_to_display = 500
 
-    freq = entry_freq.get()
-    if freq != '':
-        freq = int(freq)
-        fs = freq
-
-    # Generowanie ciągu próbek
-    t = np.arange(N) / fs  # Wektor czasu
-    x = np.sin(2 * np.pi * f * t)  # Sygnał sinusoidalny
-
-    # Ograniczenie liczby próbek do wyświetlenia dla lepszej wizualizacji
-    samples_to_display = 500  # Liczba próbek do wyświetlenia
-
-    # Wykres sygnału sinusoidalnego
     plt.figure(figsize=(10, 6))
-    plt.plot(t[:samples_to_display], x[:samples_to_display])
-    plt.xlabel('Czas [s]')
-    plt.ylabel('Amplituda')
-    plt.title(f'Sygnał sinusoidalny ({f} Hz)')
+    plt.plot(time[:samples_to_display], x[:samples_to_display])
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+    plt.title(f"Sinus signal {arg} Hz")
     plt.grid(True)
     plt.show()
 
-    # Dyskretna transformata Fouriera (DFT)
-    X = np.fft.fft(x)
-    X_magnitude = np.abs(X) / N  # Normalizacja amplitud
+    if ttf:
+        x_fft = np.fft.fft(x)
+        x_magnitude = np.abs(x_fft) / N
 
-    # Wygenerowanie wektora częstotliwości
-    freqs = np.fft.fftfreq(N, 1 / fs)
+        freqs = np.fft.fftfreq(N, 1 / fs)
 
-    # Wybór połowy zakresu (od 0 do fs/2)
-    half_N = N // 2
-    freqs_half = freqs[:half_N]
-    X_magnitude_half = X_magnitude[:half_N]
-
-    # Wykres widma amplitudowego
-    plt.figure(figsize=(10, 6))
-    plt.plot(freqs_half, X_magnitude_half)
-    plt.title('Widmo amplitudowe sygnału')
-    plt.xlabel('Częstotliwość (Hz)')
-    plt.ylabel('Amplituda')
-    plt.grid(True)
-    plt.xlim(0, fs / 2)
-    plt.show()
-
-def gen_sinus_x_2():
-    # Parametry sygnału
-    fs = 2000  # Częstotliwość próbkowania (Hz)
-    f1 = 50  # Częstotliwość pierwszej fali sinusoidalnej (Hz)
-    f2 = 60  # Częstotliwość drugiej fali sinusoidalnej (Hz)
-    N = 65536  # Długość sygnału
-    freq = entry_freq.get()
-    if freq != '':
-        freq = int(freq)
-        fs = freq
-
-    # Generowanie ciągu próbek dla mieszanki dwóch fal sinusoidalnych
-    t = np.arange(N) / fs  # Wektor czasu
-    x_mixed = np.sin(2 * np.pi * f1 * t) + np.sin(2 * np.pi * f2 * t)  # Mieszanka fal
-
-    # Dyskretna transformata Fouriera (DFT) dla sygnału mieszanki
-    X_mixed = np.fft.fft(x_mixed)
-    X_mixed_magnitude = np.abs(X_mixed) / N  # Normalizacja amplitud
-
-    # Wygenerowanie wektora częstotliwości
-    freqs = np.fft.fftfreq(N, 1 / fs)
-
-    # Wybór połowy zakresu (od 0 do fs/2)
-    half_N = N // 2
-    freqs_half = freqs[:half_N]
-    X_mixed_magnitude_half = X_mixed_magnitude[:half_N]
-
-    # Wykres widma amplitudowego dla sygnału mieszanki
-    plt.figure(figsize=(10, 6))
-    plt.plot(freqs_half, X_mixed_magnitude_half)
-    plt.title('Widmo amplitudowe mieszanki dwóch fal sinusoidalnych')
-    plt.xlabel('Częstotliwość (Hz)')
-    plt.ylabel('Amplituda')
-    plt.grid(True)
-    plt.xlim(0, fs / 2)
-    plt.show()
-
-def gen_sinus_restore():
-    # Parametry sygnału
-    fs = 2000  # Częstotliwość próbkowania (Hz)
-    f = 50  # Częstotliwość fali sinusoidalnej (Hz)
-    N = 65536  # Długość sygnału
-
-    freq = entry_freq.get()
-    if freq != '':
-        freq = int(freq)
-        fs = freq
-
-    # Generowanie ciągu próbek
-    t = np.arange(N) / fs  # Wektor czasu
-    x = np.sin(2 * np.pi * f * t)  # Sygnał sinusoidalny
-
-    # Dyskretna transformata Fouriera (DFT)
-    X = np.fft.fft(x)
-    X_magnitude = np.abs(X) / N  # Normalizacja amplitud
-
-    # Wygenerowanie wektora częstotliwości
-    freqs = np.fft.fftfreq(N, 1 / fs)
-
-    x_restored = np.fft.ifft(X).real
-
-    # Ograniczenie liczby próbek do wyświetlenia dla lepszej wizualizacji
-    samples_to_display = 100  # Liczba próbek do wyświetlenia
-
-    # Wyświetlenie sygnału oryginalnego i odzyskanego
-    plt.figure(figsize=(10, 6))
-    plt.plot(t[:samples_to_display], x[:samples_to_display], label='Oryginalny sygnał', alpha=0.7)
-    plt.plot(t[:samples_to_display], x_restored[:samples_to_display], '--', label='Sygnał odzyskany', alpha=0.7)
-    plt.title('Porównanie oryginalnego sygnału z odzyskanym')
-    plt.xlabel('Czas [s]')
-    plt.ylabel('Amplituda')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+        half_N = N // 2
+        freqs_half = freqs[:half_N]
+        x_magnitude_half = x_magnitude[:half_N]
+        plt.figure(figsize=(10, 6))
+        plt.plot(freqs_half, x_magnitude_half)
+        plt.title('Amplitude spectrum of signal')
+        plt.xlabel('Frequency [Hz]')
+        plt.ylabel('Amplitude')
+        plt.grid(True)
+        plt.xlim(0, fs / 2)
+        plt.show()
+        if inverse:
+            data_restored = np.fft.ifft(x_fft)
+            plt.figure(figsize=(10, 6))
+            plt.plot(time[:samples_to_display], x[:samples_to_display], label='Original signal', alpha=0.7)
+            plt.plot(time[:samples_to_display], data_restored[:samples_to_display], '--', label='Inverse signal', alpha=0.7)
+            plt.title('Original signal and inverse signal')
+            plt.xlabel('Time [s]')
+            plt.ylabel('Amplitude')
+            plt.legend()
+            plt.grid(True)
+            plt.show()
 
 
-def ekg_100():
-    data = load_signal("ekg100.txt")
+def filter(filename="ekg_noise.txt"):
+    data = load_signal("ekg_noise.txt")
     fs = 360
-    time = np.arange(len(data)) / fs
-
-    start_time = entry_start.get()
-    end_time = entry_end.get()
-    print(start_time)
-    print(end_time)
-
-    if start_time != '' and end_time != '':
-        start_index = int(start_time) * fs
-        end_index = int(end_time) * fs
-        data = data[start_index:end_index]
-        time = time[start_index:end_index]
-
-
+    time = data[:, 0]
+    amplitude = data[:, 1]
     plt.figure(figsize=(10, 6))
-    plt.plot(time, data, label='Sygnał')
-    plt.title('ekg100.txt')
-    plt.xlabel('Czas [s]')
-    plt.ylabel('Amplituda')
+    plt.plot(time, amplitude, label="signal")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
     plt.grid(True)
     plt.legend(loc='upper right')
     plt.show()
 
-    # Ograniczenie liczby próbek do wyświetlenia dla lepszej wizualizacji
-    samples_to_display = 500  # Liczba próbek do wyświetlenia
 
-    # Dyskretna transformata Fouriera (DFT)
+    N = len(time)
+    T = time[1] - time[0]
+    yf = np.fft.fft(amplitude)
+    xf = np.fft.fftfreq(N, T)[:N // 2]
 
-    n = len(data)
-    Y = np.fft.fft(data)
-    P2 = np.abs(Y)
-    P1 = P2[:n // 2 + 1] / n
-    P1[1:-1] = 2 * P1[1:-1]
-    f = np.linspace(0, fs / 2, len(P1))
     plt.figure(figsize=(10, 6))
-    plt.plot(f, P1)
-    plt.title('Widmo amplitudowe sygnału')
-    plt.xlabel('Częstotliwość (Hz)')
-    plt.ylabel('Amplituda')
+    plt.plot(xf, 2.0 / N * np.abs(yf[0:N // 2]))
+    plt.title('Frequency Spectrum of ECG Signal')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.grid(True)
+    plt.xlim(0, 100)
+    plt.show()
+
+    b, a = butter(N=5, Wn=58, fs=1 / T, btype='low')
+    filtered_ecg_low = filtfilt(b, a, amplitude)
+
+    yf_filtered_low = np.fft.fft(filtered_ecg_low)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(time, amplitude, label=f'Original {filename}', alpha=0.5)
+    plt.plot(time, filtered_ecg_low, label='Low-pass Filtered ECG', alpha=0.75)
+    plt.title('ECG Signal Before and After Low-pass Filtering')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Amplitude')
+    plt.legend()
     plt.grid(True)
     plt.show()
-    # X = np.fft.fft(data)
-    # X_magnitude = np.abs(X) / len(data)  # Normalizacja amplitud
-    #
-    # # Wygenerowanie wektora częstotliwości
-    # freqs = np.fft.fftfreq(len(data), 1 / fs)
-    #
-    # # Wybór połowy zakresu (od 0 do fs/2)
-    # half_N = len(data) // 2
-    # freqs_half = freqs[:half_N]
-    # X_magnitude_half = X_magnitude[:half_N]
-    #
-    # # Wykres widma amplitudowego
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(freqs_half, X_magnitude_half)
-    # plt.title('Widmo amplitudowe sygnału')
-    # plt.xlabel('Częstotliwość (Hz)')
-    # plt.ylabel('Amplituda')
-    # plt.grid(True)
-    # plt.xlim(0, fs / 2)
-    # plt.show()
 
-    data_restored = np.fft.ifft(X).real
-
-    diff = data - data_restored
-
-    # Wyświetlenie oryginalnego i odzyskanego sygnału oraz ich różnicy
-    plt.figure(figsize=(15, 9))
-
-    plt.subplot(3, 1, 1)
-    plt.plot(time, data, label='Oryginalny sygnał EKG')
-    plt.title('Oryginalny sygnał EKG')
-    plt.xlabel('Numer próbki')
-    plt.ylabel('Amplituda')
+    # Plot the frequency spectrum of the filtered signal
+    plt.figure(figsize=(10, 6))
+    plt.plot(xf, 2.0 / N * np.abs(yf[0:N // 2]), label='Original ECG', alpha=0.5)
+    plt.plot(xf, 2.0 / N * np.abs(yf_filtered_low[0:N // 2]), label='Low-pass Filtered ECG', alpha=0.75)
+    plt.title('Frequency Spectrum After Low-pass Filtering')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.xlim(0, 100)  # Limiting frequency axis for better visibility
     plt.legend()
+    plt.grid(True)
+    plt.show()
 
-    plt.subplot(3, 1, 2)
-    plt.plot(time, data_restored, label='Odzyskany sygnał EKG', linestyle='--')
-    plt.title('Odzyskany sygnał EKG z IDFT')
-    plt.xlabel('Numer próbki')
-    plt.ylabel('Amplituda')
+    # Design a high-pass Butterworth filter with a cutoff frequency of 5 Hz
+    b_high, a_high = butter(N=5, Wn=5, fs=1 / T, btype='high')
+
+    # Apply the filter to the low-pass filtered ECG signal
+    filtered_ecg_high = filtfilt(b_high, a_high, filtered_ecg_low)
+
+    # Compute the FFT of the high-pass filtered signal
+    yf_filtered_high = np.fft.fft(filtered_ecg_high)
+
+    # Plot the signal after low-pass filtering and after high-pass filtering in time domain
+    plt.figure(figsize=(10, 6))
+    plt.plot(time, filtered_ecg_low, label='Low-pass Filtered ECG', alpha=0.5)
+    plt.plot(time, filtered_ecg_high, label='High-pass Filtered ECG', alpha=0.75)
+    plt.title('ECG Signal After Low-pass and High-pass Filtering')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Amplitude')
     plt.legend()
+    plt.grid(True)
+    plt.show()
 
-    plt.subplot(3, 1, 3)
-    plt.plot(time, diff, label='Różnica sygnałów', color='red')
-    plt.title('Różnica między oryginalnym a odzyskanym sygnałem EKG')
-    plt.xlabel('Numer próbki')
-    plt.ylabel('Amplituda')
+    # Plot the frequency spectrum of the signal after high-pass filtering
+    plt.figure(figsize=(10, 6))
+    plt.plot(xf, 2.0 / N * np.abs(yf_filtered_low[0:N // 2]), label='Low-pass Filtered ECG', alpha=0.5)
+    plt.plot(xf, 2.0 / N * np.abs(yf_filtered_high[0:N // 2]), label='High-pass Filtered ECG', alpha=0.75)
+    plt.title('Frequency Spectrum After High-pass Filtering')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.xlim(0, 100)  # Limiting frequency axis for better visibility
     plt.legend()
-
-    plt.tight_layout()
+    plt.grid(True)
     plt.show()
 
 
 
 
 
+
+filename_list = ["ekg1.txt", "ekg100.txt", "ekg_noise.txt"]
 root = tk.Tk()
 root.title("Cyfrowe przedtwarzanie sygnałów i obrazów")
+root.config(padx=50, pady=50)
 
-file_list = ["ekg1.txt", "ekg100.txt", "ekg_noise.txt"]
-label_1 = ttk.Label(root, text="Select file")
-label_1.pack(pady=10)
-file_combobox_1 = ttk.Combobox(root, values=file_list, state="readonly", width=30)
-file_combobox_1.pack(pady=10)
-file_combobox_1.set("Select file")
+label_filename = ttk.Label(root, text="Select file")
+label_filename.grid(column=0, row=0)
+combobox_filename = ttk.Combobox(root, values=filename_list, width=20)
+combobox_filename.current(0)
+combobox_filename.grid(column=0, row=1)
 
-label_2 = ttk.Label(root, text="Starting time [s]")
-label_2.pack(pady=5)
-entry_start = ttk.Entry(root)
-entry_start.pack()
+button_plot = ttk.Button(root, text="Generate plot of selected signal", command=make_plot)
+button_plot.grid(column=0, row=2)
 
-label_3 = ttk.Label(root, text="Ending time [s]")
-label_3.pack(pady=5)
-entry_end = ttk.Entry(root)
-entry_end.pack()
+label_sinus = ttk.Label(root, text="Sinus")
+label_sinus.grid(column=1, row=0)
 
-label_4 = ttk.Label(root, text="Enter filename to save")
-label_4.pack(pady=5)
-entry_filename = ttk.Entry(root)
-entry_filename.pack()
+button_sinus = ttk.Button(root, text="Sinus plot generate", command=sinus_plot)
+button_sinus.grid(column=1, row=1)
 
-label_5 = ttk.Label(root, text="Enter sampling frequency")
-label_5.pack(pady=5)
-entry_freq = ttk.Entry(root)
-entry_freq.pack()
+label_sinus_hz = ttk.Label(root, text="Enter sinus Hz exp. 50, 60, 70 ...")
+label_sinus_hz.grid(column=1, row=2)
+entry_sinus = ttk.Entry(root)
+entry_sinus.insert(0, '50')
+entry_sinus.grid(column=1, row=3)
 
-butto_1 = ttk.Button(root, text="Generate plot", command=make_plot)
-butto_1.pack(pady=10)
+button_sinus_fft = ttk.Button(root, text="Sinus plot and Fourier", command=lambda: sinus_plot(ttf=True))
+button_sinus_fft.grid(column=1, row=4)
 
-button_2 = ttk.Button(root, text="Save segment to file", command=save_segment_to_file)
-button_2.pack(pady=10)
+label_freq = ttk.Label(root, text="Enter sampling frequency")
+label_freq.grid(column=1, row=5)
 
-button_3 = ttk.Button(root, text="Sinus generate", command=gen_sinus)
-button_3.pack(pady=10)
+enter_freq = ttk.Entry(root)
+enter_freq.insert(0, '2000')
+enter_freq.grid(column=1, row=6)
 
-button_4 = ttk.Button(root, text="Mix of two sinus generate", command=gen_sinus_x_2)
-button_4.pack(pady=10)
+button_restore = ttk.Button(root, text="Inverse Fourier Transform", command=lambda: sinus_plot(inverse=True, ttf=True))
+button_restore.grid(column=1, row=7)
 
-button_5 = ttk.Button(root, text="Restore signal", command=gen_sinus_restore)
-button_5.pack(pady=10)
+label_task_3 = ttk.Label(root, text="Task number 3")
+label_task_3.grid(column=2, row=0)
 
-button_6 = ttk.Button(root, text="ekg100.txt signal", command=ekg_100)
-button_6.pack(pady=10)
+button_task_3 = ttk.Button(root, text="show plot", command=lambda: make_plot(task_3=True))
+button_task_3.grid(column=2, row=1)
+
+label_filter = ttk.Label(root, text="Filter task")
+label_filter.grid(column=3, row=0)
+
+button_filter = ttk.Button(root, text="Generate plot", command=filter)
+button_filter.grid(column=3, row=1)
+
+filename_list = ["ekg1.txt", "ekg100.txt", "ekg_noise.txt"]
+
 
 root.mainloop()
