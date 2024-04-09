@@ -49,7 +49,8 @@ def plot_signal(data, filename, task_3=False):
             plt.plot(time, data, label="signal")
             plt.title("Signal ekg100.txt")
         if filename == "ekg_noise.txt":
-            plt.plot(data[:, 0], data[:, 1], label="signa;")
+            plt.plot(data[:, 0], data[:, 1], label="signal")
+            plt.title("Signal ekg_noise.txt")
     plt.xlabel("Time [s]")
     plt.ylabel("Amplitude")
     plt.grid(True)
@@ -268,7 +269,7 @@ def filter(filename="ekg_noise.txt"):
 
 filename_list = ["ekg1.txt", "ekg100.txt", "ekg_noise.txt"]
 root = tk.Tk()
-root.title("Cyfrowe przedtwarzanie sygnałów i obrazów")
+root.title("Cyfrowe przetwarzanie sygnałów i obrazów")
 root.config(padx=50, pady=50)
 
 label_filename = ttk.Label(root, text="Select file")
