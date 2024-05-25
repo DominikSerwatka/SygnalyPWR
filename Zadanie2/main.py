@@ -1,7 +1,8 @@
+import math
 import os.path
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -9,6 +10,20 @@ filename_list = ["aerial_view.tif", "blurry-moon.tif", "bonescan.tif", "cboard_p
                  "chest-xray.tif", "circuitmask.tif", "einstein-low-contrast.tif", "hidden-symbols.tif",
                  "pollen-dark.tif", "pollen-ligt.tif", "pollen-lowcontrast.tif", "pout.tif", "spectrum.tif",
                  "text-dipxe-blurred.tif", "zoneplate.tif"]
+
+
+class ImageClass:
+    def __init__(self):
+        self.name = None
+        self.image = None
+        self.set_image()
+
+    def set_image(self):
+        filename = combobox_filename.get()
+        self.name = filename
+        file_path = os.path.abspath(f"static/{filename}")
+        im = Image.open(file_path)
+        self.image = im
 
 
 def get_image():
@@ -90,7 +105,7 @@ def select_subimage():
 
     while (x1 < 0 or x2 < 0 or y1 < 0 or y2 < 0 or x1 > np.size(image_array, 1) or x2 > np.size(image_array,
                                                                                                 1) or y1 > np.size(
-            image_array, 0) or y2 > np.size(image_array, 0) or x1 > x2 or y1 > y2):
+        image_array, 0) or y2 > np.size(image_array, 0) or x1 > x2 or y1 > y2):
         messagebox.showinfo(message="Invalid dat, please provide valid data")
         x1 = int(
             simpledialog.askstring("User Input", f"Enter x1 coordinate(from 0 to {np.size(image_array, 1)}): ").strip())
@@ -115,6 +130,82 @@ def save_subimage(subimage):
     subimage.save(full_file_path)
 
 
+def transform_by_const():
+    image = get_image()
+    grey_image = image.convert('L')
+    c = float(simpledialog.askstring("User input", "Enter number to perform transformation"))
+    image_array = np.array(grey_image)
+    transformed_image_array = np.clip(c * image_array, 0, 255).astype(np.uint8)
+    transformed_image = Image.fromarray(transformed_image_array)
+    transformed_image.show()
+
+
+def transform_by_logarithm():
+    image = get_image()
+    grey_image = image.convert('L')
+    c = float(simpledialog.askstring("User input", "Enter number to perform transformation"))
+    image_array = np.array(grey_image)
+    transformed_image_array = np.clip(c * np.log1p(image_array), 0, 255).astype(np.uint8)
+    transformed_image = Image.fromarray(transformed_image_array)
+    transformed_image.show()
+
+
+def transform_to_show_contrast():
+    image = get_image()
+    grey_image = image.convert('L')
+    m = float(simpledialog.askstring("User input", "Enter the value of parameter m"))
+    e = float(simpledialog.askstring("User input", "Enter the value of parameter e"))
+    image_array = np.array(grey_image)
+    transformed_image_array = np.clip(255 * (1 / (1 + (m / (image_array / 255.0)) ** e)), 0, 255).astype(np.uint8)
+    transformed_image = Image.fromarray(transformed_image_array)
+    transformed_image.show()
+
+    # Plot T(r)
+    r = np.linspace(0, 255, 256)
+    T_of_r = 255 * (1 / (1 + (m / (r / 255.0)) ** e))
+    plt.plot(r, T_of_r)
+    plt.title(f"Transformation T(r) with m={m}, e={e}")
+    plt.xlabel("Input intensity (r)")
+    plt.ylabel("Output intensity (T(r))")
+    plt.show()
+
+
+def gamma_corection():
+    image = get_image()
+    grey_image = image.convert('L')
+    c = float(simpledialog.askstring("User input", "Enter the value of const c"))
+    gamma = float(simpledialog.askstring("User input", "Enter the value of gamma"))
+    image_array = np.array(grey_image)
+    normalize_image_array = image_array / 255.0
+    transformed_image_array = np.clip(c * (normalize_image_array ** gamma) * 255, 0, 255).astype(np.uint8)
+    transformed_image = Image.fromarray(transformed_image_array)
+    transformed_image.show()
+
+
+def histogram_generation():
+    image = ImageClass()
+    grey_image = image.image.convert('L')
+    image_array = np.array(grey_image)
+    plt.hist(image_array.flatten(), bins=256, range=(0, 256), color='black', alpha=0.7)
+    plt.title(f"Histogram of {image.name}")
+    plt.xlabel("Pixel value")
+    plt.ylabel("Frequency")
+    plt.show()
+
+
+def histogram_equalization():
+    image = ImageClass()
+    grey_image = image.image.convert('L')
+    equalization_image = ImageOps.equalize(grey_image)
+    image_array = np.array(equalization_image)
+    plt.hist(image_array.flatten(), bins=256, range=(0, 256), color='black', alpha=0.7)
+    plt.title(f"Histogram after equalization of {image.name}")
+    plt.xlabel("Pixel value")
+    plt.ylabel("Frequency")
+    plt.show()
+    equalization_image.show()
+
+
 root = tk.Tk()
 root.title("Cyfrowe przetwarzanie sygnałów i obrazów")
 root.config(padx=50, pady=50)
@@ -129,9 +220,28 @@ button_plot = ttk.Button(root, text="Get image from list", command=show_image)
 button_plot.grid(column=0, row=2)
 
 button_grey_profile = ttk.Button(root, text="Plot Greyscale Profile", command=plot_greyscale_profile)
-button_grey_profile.grid(column=0, row=3)
+button_grey_profile.grid(column=0, row=4)
 
 button_select_subimage = ttk.Button(root, text="Select and Save Subimage", command=select_subimage)
-button_select_subimage.grid(column=0, row=3)
+button_select_subimage.grid(column=0, row=5)
+
+button_const_transform = ttk.Button(root, text="Transform image by const", command=transform_by_const)
+button_const_transform.grid(column=0, row=6)
+
+button_const_log_transform = ttk.Button(root, text="Logarithm transformation", command=transform_by_logarithm)
+button_const_log_transform.grid(column=0, row=7)
+
+button_contrast_show = ttk.Button(root, text="Contrast of the picture", command=transform_to_show_contrast)
+button_contrast_show.grid(column=0, row=8)
+
+button_gamma_corection = ttk.Button(root, text="Gamma correction", command=gamma_corection)
+button_gamma_corection.grid(column=0, row=9)
+
+button_show_histogram = ttk.Button(root, text="Histogram generation", command=histogram_generation)
+button_show_histogram.grid(column=0, row=10)
+
+button_show_histogram_after_equalization = ttk.Button(root, text="Histogram after equalization",
+                                                      command=histogram_equalization)
+button_show_histogram_after_equalization.grid(column=0, row=11)
 
 root.mainloop()
