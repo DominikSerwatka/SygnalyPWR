@@ -2,8 +2,6 @@ import math
 import os.path
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
-
-import scipy
 from PIL import Image, ImageOps
 import numpy as np
 import matplotlib.pyplot as plt
@@ -234,6 +232,7 @@ def local_histogram_equalization():
     equalized_image.show()
 
 
+
 def local_statistical_enhancement():
     image = get_image()
     grey_image = image.convert('L')
@@ -271,7 +270,6 @@ def local_statistical_enhancement():
 
     # Show enhanced image
     enhanced_image.show()
-
 
 root = tk.Tk()
 root.title("Cyfrowe przetwarzanie sygnałów i obrazów")
@@ -313,9 +311,6 @@ button_show_histogram_after_equalization.grid(column=0, row=11)
 
 button_local_histogram_equalization = ttk.Button(root, text="Histogram after local equalization", command=local_histogram_equalization)
 button_local_histogram_equalization.grid(column=0, row=12)
-
-button_local_statistical_enhancement = ttk.Button(root, text="Local statistical enhancement", command=local_statistical_enhancement)
-button_local_statistical_enhancement.grid(column=0, row=13)
 
 
 root.mainloop()
