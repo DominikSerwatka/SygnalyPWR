@@ -7,7 +7,7 @@ import scipy
 from PIL import Image, ImageOps
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import median_filter
+from scipy.ndimage import median_filter, minimum_filter, maximum_filter
 from skimage import exposure, util
 from skimage.util import img_as_ubyte
 
@@ -306,6 +306,33 @@ def apply_median_filter():
     filtered_image.show()
 
 
+def apply_minimum_filter():
+    image = get_image()  # Get the image using your existing function
+    grey_image = image.convert('L')  # Convert the image to grayscale
+    image_array = np.array(grey_image)  # Convert the PIL image to a NumPy array
+
+    # Ask the user for the size of the filter mask
+    mask_size = simpledialog.askinteger("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):", minvalue=1, maxvalue=None)
+    if mask_size is None:
+        return  # User cancelled or entered an invalid input
+
+    filtered_image_array = minimum_filter(image_array, size=mask_size)
+    filtered_image = Image.fromarray(filtered_image_array)
+    filtered_image.show()
+
+
+def apply_maximum_filter():
+    image = get_image()  # Get the image using your existing function
+    grey_image = image.convert('L')  # Convert the image to grayscale
+    image_array = np.array(grey_image)  # Convert the PIL image to a NumPy array
+    mask_size = simpledialog.askinteger("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):", minvalue=1, maxvalue=None)
+    if mask_size is None:
+        return  # User cancelled or entered an invalid input
+    filtered_image_array = maximum_filter(image_array, size=mask_size)
+    filtered_image = Image.fromarray(filtered_image_array)
+    filtered_image.show()
+
+
 root = tk.Tk()
 root.title("Cyfrowe przetwarzanie sygnałów i obrazów")
 root.config(padx=50, pady=50)
@@ -357,5 +384,11 @@ button_lowpass_averaging_filter.grid(column=0, row=14)
 
 button_lowpass_median_filter = ttk.Button(root, text="Lowpass median filter", command=apply_median_filter)
 button_lowpass_median_filter.grid(column=0, row=15)
+
+button_minimum_filter = ttk.Button(root, text="Lowpass minimum filter", command=apply_minimum_filter)
+button_minimum_filter.grid(column=0, row=16)
+
+button_maximum_filter = ttk.Button(root, text="Lowpass maximum filter", command=apply_maximum_filter)
+button_maximum_filter.grid(column=0, row=17)
 
 root.mainloop()
