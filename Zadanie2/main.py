@@ -7,11 +7,13 @@ import scipy
 from PIL import Image, ImageOps
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.ndimage import median_filter
 from skimage import exposure, util
 from skimage.util import img_as_ubyte
 
 filename_list = ["aerial_view.tif", "blurry-moon.tif", "bonescan.tif", "cboard_pepper_only.tif", "cboard_salt_only.tif",
-                 "chest-xray.tif", "circuitmask.tif", "einstein-low-contrast.tif", "hidden-symbols.tif",
+                 "chest-xray.tif", "cboard_salt_pepper.tif", "circuitmask.tif", "einstein-low-contrast.tif",
+                 "hidden-symbols.tif",
                  "pollen-dark.tif", "pollen-ligt.tif", "pollen-lowcontrast.tif", "pout.tif", "spectrum.tif",
                  "text-dipxe-blurred.tif", "zoneplate.tif"]
 
@@ -246,7 +248,7 @@ def local_statistical_enhancement():
         return
 
     # Calculate local mean and variance using a moving window
-    mean_filter = np.ones((mask_size, mask_size)) / (mask_size**2)
+    mean_filter = np.ones((mask_size, mask_size)) / (mask_size ** 2)
     local_mean = scipy.ndimage.convolve(image_array, mean_filter, mode='reflect')
     local_var = scipy.ndimage.generic_filter(image_array, np.var, size=mask_size, mode='reflect')
 
@@ -271,6 +273,37 @@ def local_statistical_enhancement():
 
     # Show enhanced image
     enhanced_image.show()
+
+
+def lowpass_averaging_filter():
+    image = get_image()
+    grey_image = image.convert('L')
+    image_array = np.array(grey_image)
+    mask_size = int(simpledialog.askstring("Input", "Enter the kernel size (e.g., 3 for 3x3 blocks):").strip())
+    filter_kernel = np.ones((mask_size, mask_size)) / (mask_size ** 2)
+    filtered_image_array = scipy.ndimage.convolve(image_array, filter_kernel, mode='reflect')
+    filtered_image = Image.fromarray(filtered_image_array.astype(np.uint8))
+
+    filtered_image.show()
+
+
+def apply_median_filter():
+    image = get_image()  # Get the image using your existing function
+    grey_image = image.convert('L')  # Convert the image to grayscale
+    image_array = np.array(grey_image)  # Convert the PIL image to a NumPy array
+
+    # Ask the user for the size of the median filter mask
+    mask_size = simpledialog.askinteger("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):", minvalue=1, maxvalue=None)
+    if mask_size is None:
+        return  # User cancelled or entered an invalid input
+
+    # Check if the mask size is odd
+    if mask_size % 2 == 0:
+        messagebox.showerror("Error", "Mask size must be an odd number.")
+        return
+    filtered_image_array = median_filter(image_array, size=mask_size)
+    filtered_image = Image.fromarray(filtered_image_array)
+    filtered_image.show()
 
 
 root = tk.Tk()
@@ -311,11 +344,18 @@ button_show_histogram_after_equalization = ttk.Button(root, text="Histogram afte
                                                       command=histogram_equalization)
 button_show_histogram_after_equalization.grid(column=0, row=11)
 
-button_local_histogram_equalization = ttk.Button(root, text="Histogram after local equalization", command=local_histogram_equalization)
+button_local_histogram_equalization = ttk.Button(root, text="Histogram after local equalization",
+                                                 command=local_histogram_equalization)
 button_local_histogram_equalization.grid(column=0, row=12)
 
-button_local_statistical_enhancement = ttk.Button(root, text="Local statistical enhancement", command=local_statistical_enhancement)
+button_local_statistical_enhancement = ttk.Button(root, text="Local statistical enhancement",
+                                                  command=local_statistical_enhancement)
 button_local_statistical_enhancement.grid(column=0, row=13)
 
+button_lowpass_averaging_filter = ttk.Button(root, text="Lowpass averaging filter", command=lowpass_averaging_filter)
+button_lowpass_averaging_filter.grid(column=0, row=14)
+
+button_lowpass_median_filter = ttk.Button(root, text="Lowpass median filter", command=apply_median_filter)
+button_lowpass_median_filter.grid(column=0, row=15)
 
 root.mainloop()
