@@ -7,7 +7,7 @@ import scipy
 from PIL import Image, ImageOps
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import median_filter, minimum_filter, maximum_filter
+from scipy.ndimage import median_filter, minimum_filter, maximum_filter, uniform_filter, gaussian_filter
 from skimage import exposure, util
 from skimage.util import img_as_ubyte
 
@@ -15,7 +15,7 @@ filename_list = ["aerial_view.tif", "blurry-moon.tif", "bonescan.tif", "cboard_p
                  "chest-xray.tif", "cboard_salt_pepper.tif", "circuitmask.tif", "einstein-low-contrast.tif",
                  "hidden-symbols.tif",
                  "pollen-dark.tif", "pollen-ligt.tif", "pollen-lowcontrast.tif", "pout.tif", "spectrum.tif",
-                 "text-dipxe-blurred.tif", "zoneplate.tif"]
+                 "text-dipxe-blurred.tif", "zoneplate.tif", "characters_test_pattern.tif"]
 
 
 class ImageClass:
@@ -333,6 +333,26 @@ def apply_maximum_filter():
     filtered_image.show()
 
 
+def apply_averaging_filter():
+    image = get_image()  # Fetch the current image using existing function
+    grey_image = image.convert('L')  # Convert to grayscale
+    image_array = np.array(grey_image)  # Convert image to array
+    mask_size = int(simpledialog.askstring("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):"))
+    filtered_image_array = uniform_filter(image_array, size=mask_size)
+    filtered_image = Image.fromarray(filtered_image_array)
+    filtered_image.show()
+
+
+def apply_gaussian_filter():
+    image = get_image()  # Fetch the current image using existing function
+    grey_image = image.convert('L')  # Convert to grayscale
+    image_array = np.array(grey_image)  # Convert image to array
+    sigma = float(simpledialog.askstring("Input", "Enter the sigma value for the Gaussian filter:"))
+    filtered_image_array = gaussian_filter(image_array, sigma=sigma)
+    filtered_image = Image.fromarray(filtered_image_array)
+    filtered_image.show()
+
+
 root = tk.Tk()
 root.title("Cyfrowe przetwarzanie sygnałów i obrazów")
 root.config(padx=50, pady=50)
@@ -390,5 +410,11 @@ button_minimum_filter.grid(column=0, row=16)
 
 button_maximum_filter = ttk.Button(root, text="Lowpass maximum filter", command=apply_maximum_filter)
 button_maximum_filter.grid(column=0, row=17)
+
+button_averaging_filter = ttk.Button(root, text="Averaging filter", command=apply_averaging_filter)
+button_averaging_filter.grid(column=0, row=18)
+
+button_gaussian_filter = ttk.Button(root, text="Gaussion filter", command=apply_gaussian_filter)
+button_gaussian_filter.grid(column=0, row=19)
 
 root.mainloop()
