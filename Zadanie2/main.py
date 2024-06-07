@@ -15,7 +15,7 @@ filename_list = ["aerial_view.tif", "blurry-moon.tif", "bonescan.tif", "cboard_p
                  "chest-xray.tif", "cboard_salt_pepper.tif", "circuitmask.tif", "einstein-low-contrast.tif",
                  "hidden-symbols.tif",
                  "pollen-dark.tif", "pollen-ligt.tif", "pollen-lowcontrast.tif", "pout.tif", "spectrum.tif",
-                 "text-dipxe-blurred.tif", "zoneplate.tif", "characters_test_pattern.tif"]
+                 "text-dipxe-blurred.tif", "zoneplate.tif", "characters_test_pattern.tif", "testpat1.png"]
 
 
 class ImageClass:
