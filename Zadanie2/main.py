@@ -1,4 +1,3 @@
-import math
 import os.path
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
@@ -8,7 +7,7 @@ from PIL import Image, ImageOps
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import median_filter, minimum_filter, maximum_filter, uniform_filter, gaussian_filter
-from skimage import exposure, util
+from skimage import exposure
 from skimage.util import img_as_ubyte
 
 filename_list = ["aerial_view.tif", "blurry-moon.tif", "bonescan.tif", "cboard_pepper_only.tif", "cboard_salt_only.tif",
