@@ -218,28 +218,23 @@ def filter(filename="ekg_noise.txt"):
     plt.grid(True)
     plt.show()
 
-    # Plot the frequency spectrum of the filtered signal
     plt.figure(figsize=(10, 6))
     plt.plot(xf, 2.0 / N * np.abs(yf[0:N // 2]), label='Original ECG', alpha=0.5)
     plt.plot(xf, 2.0 / N * np.abs(yf_filtered_low[0:N // 2]), label='Low-pass Filtered ECG', alpha=0.75)
     plt.title('Frequency Spectrum After Low-pass Filtering')
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude')
-    plt.xlim(0, 100)  # Limiting frequency axis for better visibility
+    plt.xlim(0, 100)
     plt.legend()
     plt.grid(True)
     plt.show()
 
-    # Design a high-pass Butterworth filter with a cutoff frequency of 5 Hz
     b_high, a_high = butter(N=5, Wn=5, fs=1 / T, btype='high')
 
-    # Apply the filter to the low-pass filtered ECG signal
     filtered_ecg_high = filtfilt(b_high, a_high, filtered_ecg_low)
 
-    # Compute the FFT of the high-pass filtered signal
     yf_filtered_high = np.fft.fft(filtered_ecg_high)
 
-    # Plot the signal after low-pass filtering and after high-pass filtering in time domain
     plt.figure(figsize=(10, 6))
     plt.plot(time, filtered_ecg_low, label='Low-pass Filtered ECG', alpha=0.5)
     plt.plot(time, filtered_ecg_high, label='High-pass Filtered ECG', alpha=0.75)
@@ -250,14 +245,13 @@ def filter(filename="ekg_noise.txt"):
     plt.grid(True)
     plt.show()
 
-    # Plot the frequency spectrum of the signal after high-pass filtering
     plt.figure(figsize=(10, 6))
     plt.plot(xf, 2.0 / N * np.abs(yf_filtered_low[0:N // 2]), label='Low-pass Filtered ECG', alpha=0.5)
     plt.plot(xf, 2.0 / N * np.abs(yf_filtered_high[0:N // 2]), label='High-pass Filtered ECG', alpha=0.75)
     plt.title('Frequency Spectrum After High-pass Filtering')
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude')
-    plt.xlim(0, 100)  # Limiting frequency axis for better visibility
+    plt.xlim(0, 100)
     plt.legend()
     plt.grid(True)
     plt.show()

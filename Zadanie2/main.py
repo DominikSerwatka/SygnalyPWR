@@ -240,27 +240,22 @@ def local_statistical_enhancement():
     grey_image = image.convert('L')
     image_array = np.array(grey_image)
 
-    # Ask the user for the mask size
     mask_size = int(simpledialog.askstring("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):").strip())
     if mask_size % 2 == 0:
         messagebox.showerror("Error", "Mask size must be an odd number.")
         return
 
-    # Calculate local mean and variance using a moving window
     mean_filter = np.ones((mask_size, mask_size)) / (mask_size ** 2)
     local_mean = scipy.ndimage.convolve(image_array, mean_filter, mode='reflect')
     local_var = scipy.ndimage.generic_filter(image_array, np.var, size=mask_size, mode='reflect')
 
-    # Enhancement factor parameters from slide
     C = 22.8
     k0 = k2 = 0
     k1 = k3 = 0.1
 
-    # Compute enhancement condition
     global_mean = np.mean(image_array)
     global_var = np.var(image_array)
 
-    # Apply enhancement based on conditions
     enhanced_image_array = np.where(
         (local_mean <= k1 * global_mean) & (local_var >= k2 * global_var) & (local_var <= k3 * global_var),
         C * image_array,
@@ -270,7 +265,6 @@ def local_statistical_enhancement():
     enhanced_image_array = np.clip(enhanced_image_array, 0, 255).astype(np.uint8)
     enhanced_image = Image.fromarray(enhanced_image_array)
 
-    # Show enhanced image
     enhanced_image.show()
 
 
@@ -287,16 +281,14 @@ def lowpass_averaging_filter():
 
 
 def apply_median_filter():
-    image = get_image()  # Get the image using your existing function
-    grey_image = image.convert('L')  # Convert the image to grayscale
-    image_array = np.array(grey_image)  # Convert the PIL image to a NumPy array
+    image = get_image()
+    grey_image = image.convert('L')
+    image_array = np.array(grey_image)
 
-    # Ask the user for the size of the median filter mask
     mask_size = simpledialog.askinteger("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):", minvalue=1, maxvalue=None)
     if mask_size is None:
-        return  # User cancelled or entered an invalid input
+        return
 
-    # Check if the mask size is odd
     if mask_size % 2 == 0:
         messagebox.showerror("Error", "Mask size must be an odd number.")
         return
@@ -306,14 +298,14 @@ def apply_median_filter():
 
 
 def apply_minimum_filter():
-    image = get_image()  # Get the image using your existing function
-    grey_image = image.convert('L')  # Convert the image to grayscale
-    image_array = np.array(grey_image)  # Convert the PIL image to a NumPy array
+    image = get_image()
+    grey_image = image.convert('L')
+    image_array = np.array(grey_image)
 
-    # Ask the user for the size of the filter mask
+
     mask_size = simpledialog.askinteger("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):", minvalue=1, maxvalue=None)
     if mask_size is None:
-        return  # User cancelled or entered an invalid input
+        return
 
     filtered_image_array = minimum_filter(image_array, size=mask_size)
     filtered_image = Image.fromarray(filtered_image_array)
@@ -321,21 +313,21 @@ def apply_minimum_filter():
 
 
 def apply_maximum_filter():
-    image = get_image()  # Get the image using your existing function
-    grey_image = image.convert('L')  # Convert the image to grayscale
-    image_array = np.array(grey_image)  # Convert the PIL image to a NumPy array
+    image = get_image()
+    grey_image = image.convert('L')
+    image_array = np.array(grey_image)
     mask_size = simpledialog.askinteger("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):", minvalue=1, maxvalue=None)
     if mask_size is None:
-        return  # User cancelled or entered an invalid input
+        return
     filtered_image_array = maximum_filter(image_array, size=mask_size)
     filtered_image = Image.fromarray(filtered_image_array)
     filtered_image.show()
 
 
 def apply_averaging_filter():
-    image = get_image()  # Fetch the current image using existing function
-    grey_image = image.convert('L')  # Convert to grayscale
-    image_array = np.array(grey_image)  # Convert image to array
+    image = get_image()
+    grey_image = image.convert('L')
+    image_array = np.array(grey_image)
     mask_size = int(simpledialog.askstring("Input", "Enter the mask size (e.g., 3 for a 3x3 mask):"))
     filtered_image_array = uniform_filter(image_array, size=mask_size)
     filtered_image = Image.fromarray(filtered_image_array)
@@ -343,9 +335,9 @@ def apply_averaging_filter():
 
 
 def apply_gaussian_filter():
-    image = get_image()  # Fetch the current image using existing function
-    grey_image = image.convert('L')  # Convert to grayscale
-    image_array = np.array(grey_image)  # Convert image to array
+    image = get_image()
+    grey_image = image.convert('L')
+    image_array = np.array(grey_image)
     sigma = float(simpledialog.askstring("Input", "Enter the sigma value for the Gaussian filter:"))
     filtered_image_array = gaussian_filter(image_array, sigma=sigma)
     filtered_image = Image.fromarray(filtered_image_array)
